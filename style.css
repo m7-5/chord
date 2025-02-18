@@ -1,0 +1,196 @@
+body, h1, h2, p, div, a, header, article {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.6;
+    color: #fff;
+    background-color: #121212; 
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    justify-content: flex-start;
+    align-items: center;
+    max-width: 960px;
+    margin: auto;
+    min-height: 100vh;
+}
+
+a, a:visited {
+    color: #fff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+header {
+    align-self: flex-start;
+    text-align: center;
+    margin: 24px 16px 16px;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    color: #fff;
+    border-bottom: 2px solid #ffffff;
+    display: inline-block;
+    padding-bottom: 4px;
+}
+
+article {
+    background-color: #1f1f1f; 
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.6); 
+    padding: 6px 24px 30px;
+    width: 100%;
+    margin: 4px;
+    text-align: left; 
+}
+
+select {
+    border: 1px solid #fff ;
+    border-radius: 1rem;
+    background: rgba(0, 0, 0, 0);
+    color: #fff;
+    margin: 0.1rem;
+    padding: 0.2rem;
+    height: 1.5rem;
+    max-width: 54vw;
+}
+
+option {
+    color: #fff;
+    background: #111;
+    max-width: 54vw;
+}
+
+button {
+    border: 1px solid #fff ;
+    border-radius: 1rem;
+    background: #fff;
+    color: #000;
+    margin: 0.1rem;
+    padding: 0.1rem 0.6rem;
+    height: 1.5rem;
+    max-width: 36vw;
+}
+
+.h2 h2 {
+    font-size: 1.8rem;
+    color: #fff;
+    border-left: 4px solid #fff;
+    padding-left: 10px;
+    margin: 24px 0 18px;
+}
+
+h3 {
+    margin: 12px 2px 6px;
+
+}
+
+p {
+    margin: 8px 4px 6px;
+}
+
+.p p {
+    font-size: 1.2rem;
+    color: #ccc; 
+}
+
+
+#menu {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#menu div a {
+    display: block;
+    text-decoration: none;
+    font-size: 1.2rem;
+    color: #121212; 
+    background-color: #fff; 
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    text-align: center; 
+}
+
+#menu div a:hover {
+    background-color: #e0e0e0; 
+    color: #000; 
+    transform: scale(1.04);
+}
+
+
+.comment {
+    margin-top: 30px;
+    font-size: 1rem;
+    color: #aaa; 
+}
+
+/* 結果表示画面 */
+
+#result .head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    margin: 0.4rem 0.1rem;
+  }
+
+  .title {
+    font-size: 1.2rem;
+  }
+
+  .slash {
+    padding: 0.2rem;
+  }
+
+  .artist {
+    margin-right: 0.2rem;
+  }
+
+  .chord-block {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    margin: 0.4rem 0.1rem;
+  }
+
+  .progression {
+    font-size: 1.2rem;
+  }
+
+  .key {
+    margin-left: 0.4rem;
+  }
+
+  .rank-block {
+    /* display: flex; */
+    display: none;
+    margin: 0.4rem 0.1rem;
+  }
+
+@media (max-width: 800px) {
+    header h1 {
+        font-size: 2rem;
+    }
+
+    .h2 h2 {
+        font-size: 1.5rem;
+    }
+
+    .p p {
+        font-size: 1rem;
+    }
+
+    #menu div a {
+        font-size: 1rem;
+    }
+}

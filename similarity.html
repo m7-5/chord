@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chordflow</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    #back,
+    #result,
+    #error {
+      display: none;
+    }
+
+    #similarity-block,
+    #back {
+      margin: 0.2rem 0.4rem;
+    }
+
+    #result-song1,
+    #result-song2 {
+      background-color: #333;
+      padding: 0.4rem 0.4rem 0.6rem;
+      margin: 0.6rem 0;
+      border-radius: 0.4rem;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>
+      <a href="index.html">Chordflow</a>
+    </h1>
+  </header>
+  <article>
+    <div class="h2">
+      <div>
+        <h2>2種類のコード進行の類似度を調べる</h2>
+      </div>
+    </div>
+    <div id="select">
+      <div>
+        <p>このページでは、選択した2曲のサビのコード進行の類似度を計算できます。</p>
+        <p>下のプルダウンからそれぞれ異なる曲を選択し、「類似度を計算」ボタンをクリックしてください。</p>
+      </div>
+      <select name="song1" id="song1"></select>
+      <select name="song2" id="song2"></select>
+      <button id="getSelectedSongs">類似度を計算</button>
+    </div>
+    <div id="result">
+      <div id="similarity-block">
+        類似度は <span id="similarity"></span> でした。
+      </div>
+      <div id="result-song1"></div>
+      <div id="result-song2"></div>
+    </div>
+    <div id="error">
+      <div id="error-message">エラーが発生しました。曲を正しく選んでいるか確認してください。</div>
+    </div>
+    <div id="back">
+      <a href="similarity.html?song1=-1&song2=-1">戻る</a>
+    </div>
+  </article>
+  <script src="script/similarity.js"></script>
+  <script>// ページ読み込み時にパラメータをチェックする
+    window.addEventListener('DOMContentLoaded', () => {
+      // URLのパラメータを取得
+      const params = new URLSearchParams(window.location.search);
+      const result = params.get('result');
+      const song1 = params.get('song1');
+      const song2 = params.get('song2');
+
+      fetch('list.json')
+        .then(response => response.json())
+        .then(data => {
+          const selectSong1 = document.getElementById('song1');
+          const selectSong2 = document.getElementById('song2');
+
+          // list.json内のtitleをループして<select>に<option>を追加
+          data.forEach(song => {
+            const option1 = document.createElement('option');
+            option1.value = song.id;
+            option1.textContent = song.title;
+            selectSong1.appendChild(option1);
+
+            const option2 = document.createElement('option');
+            option2.value = song.id;
+            option2.textContent = song.title;
+            selectSong2.appendChild(option2);
+          });
+
+          // song1とsong2が0以上の整数かどうかを判定して分岐処理を実行
+          if (Number(result) != 1) {
+            //何もしない
+          } else if (Number.isInteger(Number(song1)) && Number(song1) >= 0 &&
+            Number.isInteger(Number(song2)) && Number(song2) >= 0 && Number(song1) != Number(song2)) {
+            console.log('song1 and song2 are both non-negative integers:', song1, song2);
+
+            // 0以上の整数の場合の処理
+            // list.json内のidとsong1を一致させて、chordを取得
+            const song1Data = data.find(song => song.id === Number(song1));
+            const song2Data = data.find(song => song.id === Number(song2));
+            const parseChord = (chord) => {
+              let array = [];
+              for (let i = 0; i < 8; i++) {
+                if (i % 2 == 0) {
+                  if (chord[i] == '') {
+                    array.push('%');
+                  } else {
+                    array.push(chord[i]);
+                  }
+                } else {
+                  if (chord[i] != '') {
+                    array.push(chord[i]);
+                  }
+                  if (i < 7) {
+                    array.push('-');
+                  }
+                }
+              }
+              return array.join(' ');
+            }
+            const keyName = ['C/Am', 'Db/Bbm', 'D/Bm', 'Eb/Cm', 'E/C#m', 'F/Dm', 'Gb/Ebm', 'G/Em', 'Ab/Fm', 'A/F#m', 'Bb/Gm', 'B/G#m']
+            if (song1Data && song2Data) {
+              const a = song1Data;
+              const b = song2Data;
+              document.getElementById('result').style.display = 'block';
+              document.getElementById('similarity').innerHTML = similarity(a, b).toFixed(4);
+              document.getElementById('result-song1').innerHTML = `<div class="head"><div class="title">${a.title}</div><div class="slash">/</div><div class="artist">${a.artist}</div></div><div class="chord-block"><div class="progression">${parseChord(a.chord)}</div><div class="key">(Key = ${keyName[a.key]})</div></div><div class="rank-block"><div class="rank">XXXX年: XX位</div></div>`;
+              document.getElementById('result-song2').innerHTML = `<div class="head"><div class="title">${b.title}</div><div class="slash">/</div><div class="artist">${b.artist}</div></div><div class="chord-block"><div class="progression">${parseChord(b.chord)}</div><div class="key">(Key = ${keyName[b.key]})</div></div><div class="rank-block"><div class="rank">XXXX年: XX位</div></div>`;
+              console.log('Chord progression similarity');
+              document.getElementById('select').style.display = 'none';
+              document.getElementById('back').style.display = 'block';
+            } else {
+              console.error('No song found with the provided song1 ID');
+            }
+
+          } else {
+            console.log('song1 or song2 is not a non-negative integer');
+            // 0以上の整数でない場合の処理
+            document.getElementById('select').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('back').style.display = 'block';
+          }
+        })
+        .catch(error => {
+          console.error('Error loading the JSON file:', error);
+        });
+    });
+
+    document.getElementById('getSelectedSongs').addEventListener('click', () => {
+      let selectedSong1 = document.getElementById('song1').value;
+      let selectedSong2 = document.getElementById('song2').value;
+
+      const resultUrl = 'similarity.html?result=1&song1=' + selectedSong1 + '&song2=' + selectedSong2;
+      console.log(resultUrl);
+      window.location.href = resultUrl;
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chordflow</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #back,
+        #result,
+        #error {
+            display: none;
+        }
+
+        #similarity-block,
+        #back {
+            margin: 0.2rem 0.4rem;
+        }
+
+        #song1-info ,
+        .result-song {
+            background-color: #333;
+            padding: 0.8rem 0.4rem 0.6rem;
+            margin: 0.6rem 0;
+            border-radius: 0.4rem;
+        }
+
+        hr {
+            color: #ccc;
+        }
+
+        .similarity {
+            display: inline;
+            background: #ccc;
+            color: #333;
+            border-radius: 3px;
+            font-size: 1.1rem;
+            padding: 0.4rem 0.2rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>
+            <a href="index.html">Chordflow</a>
+        </h1>
+    </header>
+    <article>
+        <div class="h2">
+            <div>
+                <h2>選択した曲に似た曲をランキングで表示する</h2>
+            </div>
+        </div>
+        <div id="select">
+            <div>
+                <p>このページでは、選択した曲とサビのコード進行が似ている曲を調べることができます。</p>
+                <p>下のプルダウンから曲を選択し、「結果を表示」ボタンをクリックしてください。</p>
+            </div>
+            <select name="song" id="song"></select>
+            <button id="getSelectedSongs">結果を表示</button>
+        </div>
+        <div id="result">
+        </div>
+        <div id="error">
+            <div id="error-message">エラーが発生しました。曲を正しく選んでいるか確認してください。</div>
+        </div>
+        <div id="back">
+            <a href="ranking.html?song=-1">戻る</a>
+        </div>
+    </article>
+    <script src="script/similarity.js"></script>
+    <script>// ページ読み込み時にパラメータをチェックする
+        window.addEventListener('DOMContentLoaded', () => {
+            // URLのパラメータを取得
+            const params = new URLSearchParams(window.location.search);
+            const result = params.get('result');
+            const song1 = params.get('song');
+
+            fetch('list.json')
+                .then(response => response.json())
+                .then(data => {
+                    const selectSong = document.getElementById('song');
+
+                    // list.json内のtitleをループして<select>に<option>を追加
+                    data.forEach(song => {
+                        const option = document.createElement('option');
+                        option.value = song.id;
+                        option.textContent = song.title;
+                        selectSong.appendChild(option);
+                    });
+
+                    // song1が0以上の整数かどうかを判定して分岐処理を実行
+                    if (Number(result) != 1) {
+                        //何もしない
+                    } else if (Number.isInteger(Number(song1)) && Number(song1) >= 0) {
+                        console.log('song1 is both non-negative integers:', song1);
+
+                        // 0以上の整数の場合の処理
+                        // list.json内のidとsong1を一致させて、chordを取得
+                        const song1Data = data.find(song => song.id === Number(song1));
+                        const parseChord = (chord) => {
+                            let array = [];
+                            for (let i = 0; i < 8; i++) {
+                                if (i % 2 == 0) {
+                                    if (chord[i] == '') {
+                                        array.push('%');
+                                    } else {
+                                        array.push(chord[i]);
+                                    }
+                                } else {
+                                    if (chord[i] != '') {
+                                        array.push(chord[i]);
+                                    }
+                                    if (i < 7) {
+                                        array.push('-');
+                                    }
+                                }
+                            }
+                            return array.join(' ');
+                        }
+                        const keyName = ['C/Am', 'C#/A#m', 'D/Bm', 'Eb/Cm', 'E/C#m', 'F/Dm', 'Gb/Ebm', 'G/Em', 'Ab/Fm', 'A/F#m', 'Bb/Gm', 'B/G#m'];
+
+                        let similarityArray = [];
+                        for (let i = 0; i < data.length; i++) {
+                            // 同じ曲の参照を除外
+                            if (song1 != i) {
+                                const s = similarity(song1Data, data[i]);
+                                const text = `<div class="result-song"><div class="similarity">類似度: ${s.toFixed(4)}</div><div class="head"><div class="title">${data[i].title}</div><div class="slash">/</div><div class="artist">${data[i].artist}</div></div><div class="chord-block"><div class="progression">${parseChord(data[i].chord)}</div><div class="key">(Key = ${keyName[data[i].key]})</div></div><div class="rank-block"><div class="rank">XXXX年: XX位</div></div></div>`;
+                                similarityArray.push({ "similarity": s, "text": text });
+                            }
+                        }
+                        similarityArray.sort(function (a, b) {
+                            if (a.similarity > b.similarity) return -1;
+                            if (a.similarity < b.similarity) return 1;
+                            return 0;
+                        });
+                        let resultHTML = `<div id="song1-info"><div class="similarity">比較対象の曲</div><div class="head"><div class="title">${song1Data.title}</div><div class="slash">/</div><div class="artist">${song1Data.artist}</div></div><div class="chord-block"><div class="progression">${parseChord(song1Data.chord)}</div><div class="key">(Key = ${keyName[song1Data.key]})</div></div><div class="rank-block"><div class="rank">XXXX年: XX位</div></div></div><hr>`;
+                        for (let i = 0; i < similarityArray.length; i++) {
+                            resultHTML += similarityArray[i].text;
+                        }
+                        console.log('配列', similarityArray);
+                        document.getElementById('result').innerHTML = resultHTML;
+                        document.getElementById('result').style.display = 'block';
+                        document.getElementById('select').style.display = 'none';
+                        document.getElementById('back').style.display = 'block';
+
+                    } else {
+                        console.log('song1 or song2 is not a non-negative integer');
+                        // 0以上の整数でない場合の処理
+                        document.getElementById('select').style.display = 'none';
+                        document.getElementById('error').style.display = 'block';
+                        document.getElementById('back').style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading the JSON file:', error);
+                });
+        });
+
+        document.getElementById('getSelectedSongs').addEventListener('click', () => {
+            let selectedSong1 = document.getElementById('song').value;
+            const resultUrl = 'ranking.html?result=1&song=' + selectedSong1;
+            console.log(resultUrl);
+            window.location.href = resultUrl;
+        });
+    </script>
+</body>
+
+</html>
